@@ -1,0 +1,13 @@
+{
+  "name": "mosaic-paper-blog",
+  "private": true,
+  "scripts": {
+    "preview": "python3 -m http.server 8000 --bind 127.0.0.1",
+    "test": "node --test tests/*.test.mjs && playwright test",
+    "test:browser": "playwright test",
+    "package:pages": "node scripts/prepare-pages.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}

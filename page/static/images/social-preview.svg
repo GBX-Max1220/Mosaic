@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#faf9f5"/>
+  <path d="M72 556h1056" stroke="#e3dfd5"/>
+  <g transform="translate(77 71) scale(1.75)">
+    <rect x="1" y="1" width="6" height="6" rx="1.2" fill="#ead3bd"/>
+    <rect x="9" y="1" width="6" height="6" rx="1.2" fill="#dba081"/>
+    <rect x="17" y="1" width="6" height="6" rx="1.2" fill="#c66a49"/>
+    <rect x="1" y="9" width="6" height="6" rx="1.2" fill="#dba081"/>
+    <rect x="9" y="9" width="6" height="6" rx="1.2" fill="#9e4f32"/>
+    <rect x="17" y="9" width="6" height="6" rx="1.2" fill="#ead3bd"/>
+    <rect x="1" y="17" width="6" height="6" rx="1.2" fill="#c66a49"/>
+    <rect x="9" y="17" width="6" height="6" rx="1.2" fill="#dba081"/>
+    <rect x="17" y="17" width="6" height="6" rx="1.2" fill="#ead3bd"/>
+  </g>
+  <text x="77" y="245" fill="#25231f" font-family="Georgia,serif" font-size="108" letter-spacing="-5">Mosaic</text>
+  <g fill="#25231f" font-family="Helvetica,Arial,sans-serif" font-size="35"><text x="80" y="320">Multi-Session Agentic</text><text x="80" y="366">Reinforcement Learning</text></g>
+  <text x="80" y="462" fill="#756f65" font-family="Helvetica,Arial,sans-serif" font-size="23">One task. Many sessions. Better learning.</text>
+  <g stroke="#c8c1b5" stroke-width="2" fill="none"><path d="M854 194v-61h121v-3M854 245v137h120M878 219h95"/></g>
+  <g stroke-width="2"><rect x="780" y="172" width="147" height="98" rx="15" fill="#f7ebe3" stroke="#dbb7a4"/><rect x="975" y="83" width="143" height="95" rx="15" fill="#eaf0eb" stroke="#aac1b5"/><rect x="975" y="199" width="143" height="95" rx="15" fill="#fffefa" stroke="#d9d3c8"/><rect x="975" y="334" width="143" height="95" rx="15" fill="#f2efe7" stroke="#c9c0b2"/></g>
+  <g font-family="Helvetica,Arial,sans-serif" font-size="17" text-anchor="middle"><text x="854" y="227" fill="#a65a3d">Trajectory</text><text x="1047" y="136" fill="#527a6b">Session</text><text x="1047" y="252" fill="#756f65">Session</text><text x="1047" y="389" fill="#756f65">Session</text></g>
+  <text x="80" y="593" fill="#c66a49" font-family="Helvetica,Arial,sans-serif" font-size="13" letter-spacing="2">GLOBAL OUTCOMES + LOCAL CONTRIBUTIONS</text>
+</svg>

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf9f5">
+  <title>Mosaic · Multi-Session Agentic Reinforcement Learning</title>
+  <meta name="description" content="Mosaic trains agents across multiple sessions, combining session-aware trajectory advantages with session-level shaping to improve performance and session efficiency.">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Mosaic: Multi-Session Agentic Reinforcement Learning">
+  <meta property="og:description" content="Better agents need more than longer contexts. They need to learn how to use their sessions.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mosaic: Multi-Session Agentic Reinforcement Learning">
+  <meta name="twitter:description" content="Learning across trajectories and the sessions within them.">
+  <link rel="icon" href="static/images/favicon.svg?v=3" type="image/svg+xml">
+  <link rel="stylesheet" href="static/css/style.css?v=20261014-citation-1">
+  <script src="static/js/main.js" defer></script>
+  <script src="static/js/session-loop.js" defer></script>
+  <script src="static/js/multi-session-loop.js?v=9" defer></script>
+  <script src="static/js/definition-loop.js?v=4" defer></script>
+  <script src="static/js/advantage-loop.js?v=4" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#overview">Skip to the article</a>
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="Mosaic, back to top">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="1" y="1" width="6" height="6" rx="1.2" fill="#ead3bd"/>
+        <rect x="9" y="1" width="6" height="6" rx="1.2" fill="#dba081"/>
+        <rect x="17" y="1" width="6" height="6" rx="1.2" fill="#c66a49"/>
+        <rect x="1" y="9" width="6" height="6" rx="1.2" fill="#dba081"/>
+        <rect x="9" y="9" width="6" height="6" rx="1.2" fill="#9e4f32"/>
+        <rect x="17" y="9" width="6" height="6" rx="1.2" fill="#ead3bd"/>
+        <rect x="1" y="17" width="6" height="6" rx="1.2" fill="#c66a49"/>
+        <rect x="9" y="17" width="6" height="6" rx="1.2" fill="#dba081"/>
+        <rect x="17" y="17" width="6" height="6" rx="1.2" fill="#ead3bd"/>
+      </svg>Mosaic
+    </a>
+    <nav aria-label="Article navigation"><a href="#overview">Overview</a><a href="#method">Method</a><a href="#results">Results</a></nav>
+  </header>
+
+  <main id="top">
+    <section class="hero prose" aria-labelledby="paper-title">
+      <p class="eyebrow">A more general setting for agent training</p>
+      <h1 id="paper-title">Multi-Session Agentic Reinforcement Learning</h1>
+      <!-- <p class="paper-subtitle">Multi-Session Agentic<br class="desktop-break"> Reinforcement Learning</p> -->
+      <div class="paper-credits">
+        <p class="authors" data-paper-authors>Yilong Xu, Minrui Xu, Xinyu Zhou, Xiang Long, Haochen Tan, Zhijiang Guo</p>
+        <p class="affiliations" data-paper-affiliations>LARK, HKUST(GZ) | Foundation Model Lab, Huawei | City University of Hong Kong | HKUST</p>
+      </div>
+      <div class="resource-links" aria-label="Paper resources">
+        <a role="link" aria-disabled="true" tabindex="-1" data-resource="arxiv"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.5h7l3 3v12H5zM12 2.5V6h3M8 10h4M8 13h4"/></svg>arXiv</a>
+        <a role="link" aria-disabled="true" tabindex="-1" data-resource="code"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 5-5 5 5 5m8-10 5 5-5 5m-2-12-4 14"/></svg>Code</a>
+        <a role="link" aria-disabled="true" tabindex="-1" data-resource="huggingface"><span aria-hidden="true" class="hf-icon">🤗</span>Hugging Face Papers</a>
+      </div>
+      <p class="hero-summary">An agent’s work can span many sessions.<br>Its training should, too.</p>
+      <!-- <p class="hero-description">Mosaic learns from entire trajectories <em>and</em> the sessions within them—helping agents solve more difficult tasks while making better use of their sessions.</p> -->
+    </section>
+
+    <section id="overview" class="article-section" aria-labelledby="overview-title">
+      <div class="prose">
+        <p class="section-kicker">01 / The motivation</p>
+        <h2 id="overview-title">One rollout. More than one session.</h2>
+        <p>Most existing agentic reinforcement learning builds on a simple assumption: <span class="assumption-underline">one rollout produces a single session, with reasoning, tool calls, and observations accumulating in one continuous context window.</span></p>
+        <figure class="session-loop" id="single-session-animation" data-session-loop data-state="static" data-phase="summary" aria-label="Single-session RL: a continuous history from the system prompt to the final answer becomes one training segment. Action tokens have loss mask 1; prompt and observation tokens have mask 0 and remain in context.">
+          <div class="session-loop-stage" aria-hidden="true"><p class="session-loop-message">One continuous interaction history becomes one loss-masked training segment.</p></div>
+          <div class="session-static" aria-hidden="true">
+            <p class="session-static-window">Same context window</p>
+            <div class="session-static-cards"><span data-role="sys">SYS</span><span data-role="action">a</span><span data-role="observation">o</span><span data-role="action">a</span><span data-role="observation">o</span><span class="session-static-ellipsis">…</span><span data-role="action">a</span></div>
+            <p class="session-static-label">One completed session</p>
+            <div class="session-static-arrow">↓</div>
+            <p class="session-static-label">One training segment · Loss mask</p>
+            <div class="session-static-segment"><span data-role="sys"><b>0</b><i></i></span><span data-role="action"><b>1</b><i></i></span><span data-role="observation"><b>0</b><i></i></span><span data-role="action"><b>1</b><i></i></span><span data-role="observation"><b>0</b><i></i></span><span class="session-static-ellipsis"><b>…</b><i></i></span><span data-role="action"><b>1</b><i></i></span></div>
+            <div class="session-static-arrow">↓</div><div class="session-static-trainer">RL Trainer</div>
+          </div>
+          <div class="session-live session-loop-scene" aria-hidden="true">
+            <div class="session-context"><span>Same context window</span></div>
+            <div class="session-training-label">One training segment</div>
+            <div class="session-token-sequence"><div class="session-mask-heading">Loss mask</div></div>
+            <div class="session-prefix"><span>Accumulated prefix</span></div>
+            <div class="session-trainer-arrow"></div><div class="session-trainer"><span>RL Trainer</span><small>Policy update on action tokens</small></div>
+          </div>
+        </figure>
+        <p>However, advanced agent inference techniques go beyond a single session: (1) <strong>context compaction</strong>, typically triggered when the model’s context window is nearly full, summarizes an accumulated history and replaces the working context, allowing the agent to continue beyond its context budget; (2) <strong>subagent forking</strong> delegates subtasks to independent agents, each operating in its own context window. Integrated into modern agent harnesses (Claude Code, Codex, etc.), these techniques are becoming routine tools for long-horizon tasks.</p>
+        <div class="inference-comparison">
+        <figure class="session-loop multi-session-loop" id="compaction-animation" data-multi-session="compaction" data-state="static" aria-label="Context compaction: one rollout spans three sessions—execution, a separate compaction session, and resumed execution. The agent detects the context limit before ending the execution session. The summary replaces the old prefix; the original history remains in its own session.">
+          <div class="session-loop-stage" aria-hidden="true"><p class="session-loop-message">Compaction replaces the context, so one rollout spans multiple sessions.</p></div>
+          <div class="session-static multi-session-static" aria-hidden="true">
+            <div class="multi-static-row"><p>Session 1 · execution (Completed)</p><div class="session-static-cards"><span data-role="sys">SYS</span><span data-role="action">a</span><span data-role="observation">o</span><span class="session-static-ellipsis">…</span><span data-role="observation">o</span></div></div>
+            <div class="multi-static-flow">Context limit detected → session ends</div>
+            <div class="multi-static-flow">↓ Previous history as input</div>
+            <div class="multi-static-row"><p>Session 2 · compaction (Completed)</p><div class="session-static-cards"><span data-role="sys">SYS</span><span data-role="history">History</span><span data-role="summary">Summary</span></div></div>
+            <div class="multi-static-flow">↓ Summary replaces the old prefix</div>
+            <div class="multi-static-row"><p>Session 3 · resumed execution (Completed)</p><div class="session-static-cards"><span data-role="sys">SYS</span><span data-role="summary">Summary</span><span data-role="action">a</span><span data-role="observation">o</span><span data-role="action">a</span></div></div>
+            <div class="multi-static-rollout">One rollout · 3 sessions</div>
+          </div>
+          <div class="session-live session-loop-scene multi-session-scene" aria-hidden="true"></div>
+        </figure>
+        <figure class="session-loop multi-session-loop" id="forking-animation" data-multi-session="forking" data-state="static" aria-label="Subagent forking: one rollout contains three sessions—one main session and two independent subagent sessions. Only the subagents' results return as an observation. The main agent continues the same session, then generates the final answer.">
+          <div class="session-loop-stage" aria-hidden="true"><p class="session-loop-message">Forking creates independent contexts, so one rollout spans multiple sessions.</p></div>
+          <div class="session-static multi-session-static" aria-hidden="true">
+            <div class="multi-static-row"><p>Main session · continuous before and after fork (Completed)</p><div class="session-static-cards"><span data-role="sys">SYS</span><span data-role="action">a</span><span data-role="fork">Fork</span><span data-role="observation">o</span><span data-role="action">a</span></div></div>
+            <div class="multi-static-flow">↓ Delegate tasks · ↑ Results return as o</div>
+            <div class="multi-static-row"><p>Subagent A · its own session (Completed)</p><div class="session-static-cards"><span data-role="sys">SYS</span><span data-role="task">Task A</span><span data-role="action">a</span><span data-role="observation">o</span><span data-role="action">a</span></div></div>
+            <div class="multi-static-row"><p>Subagent B · its own session (Completed)</p><div class="session-static-cards"><span data-role="sys">SYS</span><span data-role="task">Task B</span><span data-role="action">a</span><span data-role="observation">o</span><span data-role="action">a</span></div></div>
+            <div class="multi-static-rollout">One rollout · 3 sessions</div>
+          </div>
+          <div class="session-live session-loop-scene multi-session-scene" aria-hidden="true"></div>
+        </figure>
+        </div>
+        <p>These workflows expose a mismatch between single-session training and multi-session inference. To align training with how agents actually execute tasks, we introduce <strong>Multi-Session Agentic Reinforcement Learning</strong>.</p>
+        <section class="setting-definition" aria-labelledby="multi-session-definition-title">
+          <p class="section-kicker">Definition</p>
+          <h3 id="multi-session-definition-title">Multi-Session Agentic Reinforcement Learning</h3>
+          <p>An agentic reinforcement learning setting in which each rollout may contain an arbitrary number of sessions. Each session consists of agent–environment interactions within one continuously accumulated context. Each session ultimately corresponds to one training segment with its own assigned advantage.</p>
+          <div class="definition-loop" id="definition-animation" data-definition-loop data-state="static" data-phase="summary" role="img" aria-label="An example rollout spans multiple sessions. Every session becomes one training segment with an assigned advantage, and all segments contribute to one policy update.">
+            <p class="definition-loop-message" aria-hidden="true">One rollout. Multiple sessions. One policy update.</p>
+            <div class="definition-static" aria-hidden="true">
+              <div class="definition-static-label">One rollout</div>
+              <div class="definition-static-row">
+                <span class="definition-static-session">Session 1</span><span class="definition-static-session">Session 2</span><span class="definition-static-ellipsis">…</span><span class="definition-static-session">Session n</span>
+              </div>
+              <div class="definition-static-arrow">↓ Each session becomes one training segment</div>
+              <div class="definition-static-row">
+                <span class="definition-static-segment">Segment 1 <i>A<sub>1</sub></i></span><span class="definition-static-segment">Segment 2 <i>A<sub>2</sub></i></span><span class="definition-static-ellipsis">…</span><span class="definition-static-segment">Segment n <i>A<sub>n</sub></i></span>
+              </div>
+              <div class="definition-static-merge" aria-hidden="true"></div>
+              <div class="definition-trainer" data-updated="true"><strong>RL Trainer</strong><small>Policy update</small></div>
+            </div>
+            <div class="definition-live" aria-hidden="true"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="article-section" aria-labelledby="broadcast-title">
+      <div class="prose">
+        <p class="section-kicker">02 / Where current practice falls short</p>
+        <h2 id="broadcast-title">A shared outcome is a coarse signal.</h2>
+        <p>A straightforward solution is <strong>broadcasting</strong>: compute an advantage for the whole trajectory and apply that same value to every session and every trainable token within it.</p>
+        <div class="broadcast-example" role="img" aria-label="The same trajectory advantage is broadcast to all sessions and to each session's trainable tokens.">
+          <span class="signal-label">Trajectory advantage</span><span class="signal-value">A<sup>traj</sup></span>
+          <div class="broadcast-branches">
+            <div class="broadcast-group">
+              <span class="broadcast-session">Session 1 <i>A<sup>traj</sup></i></span>
+              <div class="broadcast-token-branches">
+                <span class="broadcast-token"><span>t<sub>1</sub></span><i>A<sup>traj</sup></i></span>
+                <span class="broadcast-token"><span>t<sub>2</sub></span><i>A<sup>traj</sup></i></span>
+                <span class="broadcast-token-ellipsis" aria-hidden="true">…</span>
+                <span class="broadcast-token"><span>t<sub>n</sub></span><i>A<sup>traj</sup></i></span>
+              </div>
+            </div>
+            <div class="broadcast-group">
+              <span class="broadcast-session">Session 2 <i>A<sup>traj</sup></i></span>
+              <div class="broadcast-token-branches">
+                <span class="broadcast-token"><span>t<sub>1</sub></span><i>A<sup>traj</sup></i></span>
+                <span class="broadcast-token"><span>t<sub>2</sub></span><i>A<sup>traj</sup></i></span>
+                <span class="broadcast-token-ellipsis" aria-hidden="true">…</span>
+                <span class="broadcast-token"><span>t<sub>n</sub></span><i>A<sup>traj</sup></i></span>
+              </div>
+            </div>
+            <div class="broadcast-group">
+              <span class="broadcast-session">Session 3 <i>A<sup>traj</sup></i></span>
+              <div class="broadcast-token-branches">
+                <span class="broadcast-token"><span>t<sub>1</sub></span><i>A<sup>traj</sup></i></span>
+                <span class="broadcast-token"><span>t<sub>2</sub></span><i>A<sup>traj</sup></i></span>
+                <span class="broadcast-token-ellipsis" aria-hidden="true">…</span>
+                <span class="broadcast-token"><span>t<sub>n</sub></span><i>A<sup>traj</sup></i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>This makes multi-session trajectories trainable, but it leaves two questions unresolved. <em>How many sessions should the agent use?</em> And <em>which sessions actually helped?</em> A useful search, a lossy compaction, and an unproductive delegation all inherit the same global signal.</p>
+        <blockquote>Learning across sessions requires both a global sense of success and a local sense of contribution.</blockquote>
+      </div>
+    </section>
+
+    <section id="method" class="article-section" aria-labelledby="method-title">
+      <div class="prose">
+        <p class="section-kicker">03 / Our solution</p>
+        <h2 id="method-title">Signals from sessions. Credit for each.</h2>
+        <p>We propose Mosaic, a general method for multi-session agentic reinforcement learning that combines <strong>session-aware trajectory-level advantage estimation</strong> with <strong>session-level advantage shaping</strong>. The first accounts for how the trajectory uses sessions. The second differentiates the contribution of each session, without an additional critic.</p>
+        <h3>Use enough sessions. Make them count.</h3>
+        <p>Session count is a useful signal, but it is not a reward on its own. For a <strong>successful trajectory</strong>, fewer sessions indicate more efficient execution. For an <strong>unsuccessful trajectory</strong>, using too few sessions can signal insufficient exploration.</p>
+        <p>Mosaic ranks session counts <em>within groups sharing the same outcome</em>, then uses a bounded factor to adjust the original trajectory advantage. In mixed-outcome groups, the adjustment preserves its sign: using more sessions cannot turn a failed trajectory into a successful one.</p>
+        <div class="trajectory-advantage-loop" id="trajectory-advantage-animation" data-advantage-loop data-state="static" data-phase="summary" role="img" aria-label="Six rollouts generate sessions in parallel for one prompt. The group waits for the last rollout before revealing session counts and scoring outcomes. The same cards slide into success and failure subgroups, sorted by increasing session count. Upward green and downward red arrows indicate the preference in each subgroup. Starting from outcome advantages of plus or minus one, successful rollouts with fewer sessions receive stronger positive credit; unsuccessful rollouts with more sessions receive less negative credit. Advantage signs remain unchanged. This illustrative mixed-outcome example uses rho equal to 0.2.">
+          <p class="advantage-loop-message" aria-hidden="true">Rank within each outcome group. Modulate the advantage without changing its sign.</p>
+          <div class="advantage-static" aria-hidden="true">
+            <p class="advantage-static-prompt">One prompt → six sampled rollouts → group by outcome</p>
+            <div class="advantage-static-groups">
+              <div class="advantage-static-group" data-outcome="1">
+                <p class="advantage-static-heading">Success</p>
+                <div class="advantage-static-card" data-rollout-id="3" data-outcome="1" data-sessions="2"><span>Rollout 3 <small>N = 2</small></span><div class="advantage-session-blocks advantage-static-sessions"><i class="advantage-session-block"></i><i class="advantage-session-block"></i></div><span class="advantage-static-value"><small>Advantage</small><strong data-final-advantage>+1.20</strong></span></div>
+                <div class="advantage-static-card" data-rollout-id="1" data-outcome="1" data-sessions="4"><span>Rollout 1 <small>N = 4</small></span><div class="advantage-session-blocks advantage-static-sessions"><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i></div><span class="advantage-static-value"><small>Advantage</small><strong data-final-advantage>+1.00</strong></span></div>
+                <div class="advantage-static-card" data-rollout-id="5" data-outcome="1" data-sessions="8"><span>Rollout 5 <small>N = 8</small></span><div class="advantage-session-blocks advantage-static-sessions"><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i></div><span class="advantage-static-value"><small>Advantage</small><strong data-final-advantage>+0.80</strong></span></div>
+                <p class="advantage-static-note">Fewer sessions → stronger positive credit.</p>
+              </div>
+              <div class="advantage-static-group" data-outcome="0">
+                <p class="advantage-static-heading">Failure</p>
+                <div class="advantage-static-card" data-rollout-id="2" data-outcome="0" data-sessions="2"><span>Rollout 2 <small>N = 2</small></span><div class="advantage-session-blocks advantage-static-sessions"><i class="advantage-session-block"></i><i class="advantage-session-block"></i></div><span class="advantage-static-value"><small>Advantage</small><strong data-final-advantage>−1.20</strong></span></div>
+                <div class="advantage-static-card" data-rollout-id="6" data-outcome="0" data-sessions="4"><span>Rollout 6 <small>N = 4</small></span><div class="advantage-session-blocks advantage-static-sessions"><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i></div><span class="advantage-static-value"><small>Advantage</small><strong data-final-advantage>−1.00</strong></span></div>
+                <div class="advantage-static-card" data-rollout-id="4" data-outcome="0" data-sessions="8"><span>Rollout 4 <small>N = 8</small></span><div class="advantage-session-blocks advantage-static-sessions"><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i><i class="advantage-session-block"></i></div><span class="advantage-static-value"><small>Advantage</small><strong data-final-advantage>−0.80</strong></span></div>
+                <p class="advantage-static-note">More sessions → less negative credit.</p>
+              </div>
+            </div>
+          </div>
+          <div class="advantage-live" aria-hidden="true"></div>
+          <p class="advantage-example-note" aria-hidden="true">Illustrative mixed-outcome group · baseline advantages ±1 · ρ = 0.2</p>
+        </div>
+        <h3>Give each session its own credit.</h3>
+        <p>At the local level, Mosaic treats a session as a transition between two context states. It estimates <strong>marginal information gain</strong> from the change in the policy’s average log-likelihood of the correct answer. Useful evidence can raise that likelihood; discarding important facts or adding misleading information can lower it. Furthermore, normal, compaction, and subagent sessions have different marginal gain distributions. Mosaic therefore normalizes the gain values <strong>separately by session type</strong> within the prompt group.</p>
+        <div class="session-shaping-diagram" id="session-shaping-diagram" data-session-shaping role="img" aria-label="For each non-terminal session, marginal information gain is the change in the rollout policy's average log-likelihood of the correct answer from the input context to the output context. Gains are normalized separately by session type across the prompt group.">
+          <div aria-hidden="true">
+            <p class="shaping-step-label">Measure what each non-final session changes.</p>
+            <div class="shaping-transition">
+              <span class="shaping-context">Input context <i>Φ<sub>before</sub></i></span>
+              <span class="shaping-session-transition">Session i <small>Interaction</small></span>
+              <span class="shaping-context">Output context <i>Φ<sub>after</sub></i></span>
+            </div>
+            <p class="shaping-potential-note">Φ = the policy’s average log-likelihood of the correct answer</p>
+            <p class="shaping-gain">Marginal information gain <i>Δ<sub>i</sub> = Φ<sub>after</sub> − Φ<sub>before</sub></i></p>
+            <p class="shaping-step-label">Normalize with same-type sessions across the prompt group.</p>
+            <div class="shaping-type-groups">
+              <div class="shaping-type-group"><strong>Normal</strong><span class="shaping-raw-gains">Δ<sub>1</sub>, Δ<sub>2</sub>, …</span><span class="shaping-type-arrow">↓ Normalize</span><span class="shaping-normalized-gains">r̂<sub>1</sub>, r̂<sub>2</sub>, …</span></div>
+              <div class="shaping-type-group"><strong>Compaction</strong><span class="shaping-raw-gains">Δ<sub>1</sub>, Δ<sub>2</sub>, …</span><span class="shaping-type-arrow">↓ Normalize</span><span class="shaping-normalized-gains">r̂<sub>1</sub>, r̂<sub>2</sub>, …</span></div>
+              <div class="shaping-type-group"><strong>Subagent</strong><span class="shaping-raw-gains">Δ<sub>1</sub>, Δ<sub>2</sub>, …</span><span class="shaping-type-arrow">↓ Normalize</span><span class="shaping-normalized-gains">r̂<sub>1</sub>, r̂<sub>2</sub>, …</span></div>
+            </div>
+          </div>
+        </div>
+        <p>Finally, the trajectory-level and session-level signals are combined through a weighted sum to produce the final advantage for each session:</p>
+        <div class="equation" aria-label="Session advantage equals session-aware trajectory advantage plus lambda times normalized session gain"><span>A<sub>session</sub></span><span>=</span><span class="equation-global">A<sub>session-aware trajectory</sub></span><span>+</span><span class="equation-local">λ · r̂<sub>session</sub></span></div>
+      </div>
+    </section>
+
+    <section id="results" class="article-section" aria-labelledby="results-title">
+      <div class="prose">
+        <p class="section-kicker">04 / The evidence</p>
+        <h2 id="results-title">Better answers.<br>Fewer sessions.</h2>
+        <p>We evaluate on <strong>BrowseComp</strong>, a benchmark of challenging web-research questions, using <strong>Qwen3.5-4B</strong> in a ReAct-style agent loop. Training uses 1,000 deep-search tasks from <a href="https://huggingface.co/datasets/Zchu/REDSearcher_RL_1K">REDSearcher</a>. Training and evaluation use both the compaction or forking execution loop.</p>
+        <div class="result-summary" aria-label="Context compaction results compared with broadcasting">
+          <div><span class="result-number">38.86<span>%</span></span><span class="result-description">BrowseComp accuracy<br>with context compaction</span></div>
+          <div><span class="result-number">+10.1<span>%</span></span><span class="result-description">Relative accuracy gain<br>over broadcasting</span></div>
+          <div><span class="result-number">2.35</span><span class="result-description">Average sessions<br>down from 3.17</span></div>
+        </div>
+      </div>
+      <figure class="figure-wide results-table">
+        <div class="figure-heading"><span class="figure-label">BrowseComp · Qwen3.5-4B</span><span class="figure-note">Accuracy ↑ &nbsp; Sessions ↓</span></div>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Main results table; scroll horizontally on narrow screens">
+          <table>
+            <thead><tr><th scope="col" rowspan="2">Method</th><th scope="colgroup" colspan="2">Single session</th><th scope="colgroup" colspan="2">Context compaction</th><th scope="colgroup" colspan="2">Subagent forking</th></tr><tr><th scope="col">Accuracy</th><th scope="col">Sessions</th><th scope="col">Accuracy</th><th scope="col">Sessions</th><th scope="col">Accuracy</th><th scope="col">Sessions</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Base model</th><td>23.22%</td><td>1.00</td><td>24.80%</td><td>1.70</td><td>21.64%</td><td>2.98</td></tr>
+              <tr class="table-group"><td colspan="7">Trained on single-session trajectories</td></tr>
+              <tr><th scope="row">GRPO</th><td>31.99%</td><td>1.00</td><td>34.68%</td><td>1.24</td><td>31.91%</td><td>2.09</td></tr>
+              <tr><th scope="row">IGPO</th><td>28.52%</td><td>1.00</td><td>31.36%</td><td>4.12</td><td>24.64%</td><td>3.26</td></tr>
+              <tr class="table-group"><td colspan="7">Trained on multi-session trajectories</td></tr>
+              <tr><th scope="row">Broadcasting</th><td>—</td><td>—</td><td>35.31%</td><td>3.17</td><td>31.44%</td><td>4.43</td></tr>
+              <tr class="ours"><th scope="row">Mosaic <span>ours</span></th><td>—</td><td>—</td><td><strong>38.86%</strong></td><td><strong>2.35</strong></td><td><strong>32.46%</strong></td><td><strong>3.77</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </figure>
+      <div class="prose"><p>Training with multi-session trajectories matters: single-session training does not automatically yield the full benefit of multi-session inference. Broadcasting already improves performance. Mosaic improves it further in both settings, with a lower average session count. More experimental results and analyses are available in the paper.</p></div>
+    </section>
+
+    <section id="takeaways" class="article-section last-section" aria-labelledby="takeaways-title">
+      <div class="prose">
+        <p class="section-kicker">05 / Discussion &amp; outlook</p>
+        <h2 id="takeaways-title">Train for the way agents actually work.</h2>
+        <h3>What the results suggest</h3>
+        <p>Both trajectory-level estimation and session-level shaping contribute to Mosaic’s gains. The central lesson is that effective multi-session optimization depends on <strong>session utility and allocation</strong>—not simply on using more sessions. The smaller gains with subagents also suggest that credit assignment across branching sessions remains an open challenge.</p>
+        <hr class="discussion-divider">
+        <p>We see four promising directions for future research in Multi-Session Agentic RL.</p>
+        <h3>Infrastructure for reproducible research.</h3>
+        <p>Multi-session trajectories arise naturally in complex, long-horizon tasks. While some benchmarks can elicit them, suitable public training data remain scarce, limiting the scale and reproducibility of multi-session agentic RL research. Open training datasets and corresponding agent execution environments are key to a sustainable research ecosystem.</p>
+        <h3>Cross-session state transfer as a central learning objective.</h3>
+        <p>Compaction must preserve working state for continued execution; forking must provide sufficient information for a subtask; merging must integrate the results into a state the main agent can use. Together, they raise a shared question: under a limited context budget, what information should be carried forward to support subsequent decisions? An important direction is to learn state transfer across these operations jointly, while studying information loss and error accumulation over repeated transfers.</p>
+        <h3>Asynchronous training for multi-session rollouts.</h3>
+        <p>Multi-session execution can amplify differences in rollout lengths and completion times, complicating group comparisons and sample reuse under policy staleness. Prioritizing completed rollouts may favor shorter trajectories, introducing selection bias and influencing learned execution strategies. Scaling to asynchronous settings—particularly for critic-free, group-relative optimization—requires further study of how groups are formed, stale samples are handled, and trajectories are reused.</p>
+        <h3>Toward RL within (black-boxed) agent harnesses.</h3>
+        <p>Multi-session RL could provide a foundation for training agents within harnesses whose orchestration is partially opaque, such as Claude Code. Beyond compaction and forking, other mechanisms—including dropping reasoning tokens or tool responses—can also disrupt context continuity. Future work should systematically examine these mechanisms and adapt optimization accordingly. When discontinuities occur, the choice between introducing a new session boundary and lossily concatenating the modified context with the preceding session may also affect training effectiveness.</p>
+        <div class="closing-note"><span class="closing-mark" aria-hidden="true">✳</span><p>More capable agents do not just need more room to work.<br>They need to learn how to use it.</p></div>
+        <div class="citation">
+          <p class="section-kicker">Citation</p>
+          <pre class="citation-code" tabindex="0" role="region" aria-label="BibTeX citation"><code>@article{xu2026mosaic,
+  title={Mosaic: Multi-Session Agentic Reinforcement Learning},
+  author={Xu, Yilong and Xu, Minrui and Zhou, Xinyu and Long, Xiang and Tan, Haochen and Guo Zhijiang},
+  journal={arXiv preprint},
+  year={2026}
+}</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer prose"><a class="footer-brand" href="#top">Mosaic <span>↗</span></a><p>Multi-Session Agentic Reinforcement Learning</p></footer>
+</body>
+</html>
