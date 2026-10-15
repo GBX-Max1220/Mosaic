@@ -13,7 +13,7 @@
   <meta name="twitter:title" content="Mosaic: Multi-Session Agentic Reinforcement Learning">
   <meta name="twitter:description" content="Learning across trajectories and the sessions within them.">
   <link rel="icon" href="static/images/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="static/css/style.css?v=20261014-citation-1">
+  <link rel="stylesheet" href="static/css/style.css?v=20261015-closing-logo-1">
   <script src="static/js/main.js" defer></script>
   <script src="static/js/session-loop.js?v=2" defer></script>
   <script src="static/js/multi-session-loop.js?v=10" defer></script>
@@ -279,7 +279,7 @@
         <p>Multi-session execution can amplify differences in rollout lengths and completion times, complicating group comparisons and sample reuse under policy staleness. Prioritizing completed rollouts may favor shorter trajectories, introducing selection bias and influencing learned execution strategies. Scaling to asynchronous settings—particularly for critic-free, group-relative optimization—requires further study of how groups are formed, stale samples are handled, and trajectories are reused.</p>
         <h3>Toward RL within (black-boxed) agent harnesses.</h3>
         <p>Multi-session RL could provide a foundation for training agents within harnesses whose orchestration is partially opaque, such as Claude Code. Beyond compaction and forking, other mechanisms—including dropping reasoning tokens or tool responses—can also disrupt context continuity. Future work should systematically examine these mechanisms and adapt optimization accordingly. When discontinuities occur, the choice between introducing a new session boundary and lossily concatenating the modified context with the preceding session may also affect training effectiveness.</p>
-        <div class="closing-note"><span class="closing-mark" aria-hidden="true">✳</span><p>More capable agents do not just need more room to work.<br>They need to learn how to use it.</p></div>
+        <div class="closing-note"><img class="closing-mark" src="static/images/favicon.svg?v=3" alt="" width="34" height="34"><p>More capable agents do not just need more room to work.<br>They need to learn how to use it.</p></div>
         <div class="citation">
           <p class="section-kicker">Citation</p>
           <pre class="citation-code" tabindex="0" role="region" aria-label="BibTeX citation"><code>@article{xu2026mosaic,

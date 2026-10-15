@@ -296,7 +296,7 @@ tbody th { font-weight: 500; }
 .paper-image img { width: 100%; }
 .discussion-divider { margin: 36px 0; border: 0; border-top: 1px solid var(--line); }
 .closing-note { display: flex; align-items: flex-start; gap: 20px; border-block: 1px solid var(--line); margin-top: 38px; padding: 29px 0; }
-.closing-mark { color: var(--accent); font-size: 34px; line-height: 1.35; }
+.closing-mark { width: 34px; height: 34px; flex: 0 0 34px; margin-top: 3px; }
 .closing-note p { font: 22px/1.6 var(--serif); margin: 0; }
 .citation { margin-top: 40px; }
 .citation > p { margin-bottom: 10px; font-size: 14px; }

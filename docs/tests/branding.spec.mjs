@@ -42,6 +42,21 @@ for (const width of [360, 1440]) {
     expect(layout.brandRight).toBeLessThan(layout.navLeft);
     expect(layout.icon).toBeGreaterThanOrEqual(22);
     expect(layout.overflow).toBe(false);
+    const closingLogo = page.locator('.closing-note img.closing-mark');
+    await expect(closingLogo).toHaveCount(1, { timeout: 1000 });
+    await expect(closingLogo).toHaveAttribute('alt', '');
+    await expect.poll(() => closingLogo.evaluate(node => node.complete && node.naturalWidth > 0)).toBe(true);
+    const closingLayout = await closingLogo.evaluate(node => {
+      const icon = node.getBoundingClientRect();
+      const text = node.nextElementSibling.getBoundingClientRect();
+      return { width: icon.width, height: icon.height, iconRight: icon.right, textLeft: text.left,
+        top: icon.top, textTop: text.top, documentWidth: document.documentElement.scrollWidth };
+    });
+    expect(closingLayout.width).toBe(34);
+    expect(closingLayout.height).toBe(34);
+    expect(closingLayout.iconRight).toBeLessThan(closingLayout.textLeft);
+    expect(Math.abs(closingLayout.top - closingLayout.textTop)).toBeLessThanOrEqual(4);
+    expect(closingLayout.documentWidth).toBeLessThanOrEqual(width);
     await page.locator('#overview').scrollIntoViewIfNeeded();
     await brand.click();
     await expect(page).toHaveURL(/#top$/);
