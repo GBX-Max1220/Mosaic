@@ -360,7 +360,8 @@
     }
     function tick(now) {
       frame = null;
-      elapsed += now - previousTime;
+      // A busy frame can be timestamped before the request's performance.now().
+      elapsed += Math.max(0, now - previousTime);
       previousTime = now;
       if (elapsed >= duration) {
         cycle += Math.floor(elapsed / duration);
