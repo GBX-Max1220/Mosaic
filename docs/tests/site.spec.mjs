@@ -12,9 +12,10 @@ test('readers can see the article, both experiment settings and pending resource
   await expect(page.locator('#method')).toContainText('We propose Mosaic, a general method for multi-session agentic reinforcement learning');
   await expect(page.locator('#method figure')).toHaveCount(0);
   await expect(page.locator('[data-paper-authors]')).toBeVisible();
-  for (const name of ['arXiv', 'Hugging Face Papers']) {
-    await expect(page.getByRole('link', { name, exact: true })).toHaveAttribute('aria-disabled', 'true');
-  }
+  const arxiv = page.getByRole('link', { name: 'arXiv', exact: true });
+  await expect(arxiv).toHaveAttribute('href', 'https://arxiv.org/abs/2610.22174');
+  await expect(arxiv).not.toHaveAttribute('aria-disabled', 'true');
+  await expect(page.getByRole('link', { name: 'Hugging Face Papers', exact: true })).toHaveAttribute('aria-disabled', 'true');
   const code = page.getByRole('link', { name: 'Code', exact: true });
   await expect(code).toHaveAttribute('href', 'https://github.com/LARK-AI-Lab/Mosaic');
   await expect(code).not.toHaveAttribute('aria-disabled', 'true');

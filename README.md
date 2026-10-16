@@ -4,9 +4,9 @@
 
 **Mosaic: Multi-Session Agentic Reinforcement Learning**
 
-<!-- Replace the paper and arXiv URL placeholders with the release links. -->
+<!-- Replace the paper URL placeholder with the release link. -->
 <a href="PAPER_URL"><img src="https://img.shields.io/badge/Paper-PDF-yellow?style=for-the-badge&logo=readthedocs" alt="Paper"></a>
-<a href="ARXIV_URL"><img src="https://img.shields.io/badge/ArXiv-Paper-red?style=for-the-badge&logo=arxiv" alt="arXiv"></a>
+<a href="https://arxiv.org/abs/2610.22174"><img src="https://img.shields.io/badge/ArXiv-Paper-red?style=for-the-badge&logo=arxiv" alt="arXiv"></a>
 <a href="https://lark-ai-lab.github.io/Mosaic/"><img src="https://img.shields.io/badge/Homepage-Website-blue?style=for-the-badge&logo=googlechrome" alt="Homepage"></a>
 
 *Before reading our paper, we highly recommend visiting our [Blog](https://lark-ai-lab.github.io/Mosaic/) for a visual introduction to Multi-Session Agentic RL—explore the topic through illustrations rather than dry prose.*
