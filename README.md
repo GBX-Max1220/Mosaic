@@ -4,8 +4,6 @@
 
 **Mosaic: Multi-Session Agentic Reinforcement Learning**
 
-<!-- Replace the paper URL placeholder with the release link. -->
-<a href="PAPER_URL"><img src="https://img.shields.io/badge/Paper-PDF-yellow?style=for-the-badge&logo=readthedocs" alt="Paper"></a>
 <a href="https://arxiv.org/abs/2610.22174"><img src="https://img.shields.io/badge/ArXiv-Paper-red?style=for-the-badge&logo=arxiv" alt="arXiv"></a>
 <a href="https://huggingface.co/papers/2610.22174"><img src="https://img.shields.io/badge/Hugging_Face-Papers-yellow?style=for-the-badge&logo=huggingface" alt="Hugging Face Papers"></a>
 <a href="https://lark-ai-lab.github.io/Mosaic/"><img src="https://img.shields.io/badge/Homepage-Website-blue?style=for-the-badge&logo=googlechrome" alt="Homepage"></a>
