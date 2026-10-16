@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('readers can see the article, both experiment settings and pending resources', async ({ page }) => {
+test('readers can see the article, both experiment settings and resource links', async ({ page }) => {
   const failures = [];
   page.on('response', response => {
     if (response.url().startsWith('http://127.0.0.1:4173/') && response.status() >= 400) failures.push(response.url());
@@ -15,7 +15,9 @@ test('readers can see the article, both experiment settings and pending resource
   const arxiv = page.getByRole('link', { name: 'arXiv', exact: true });
   await expect(arxiv).toHaveAttribute('href', 'https://arxiv.org/abs/2610.22174');
   await expect(arxiv).not.toHaveAttribute('aria-disabled', 'true');
-  await expect(page.getByRole('link', { name: 'Hugging Face Papers', exact: true })).toHaveAttribute('aria-disabled', 'true');
+  const huggingface = page.getByRole('link', { name: 'Hugging Face Papers', exact: true });
+  await expect(huggingface).toHaveAttribute('href', 'https://huggingface.co/papers/2610.22174');
+  await expect(huggingface).not.toHaveAttribute('aria-disabled', 'true');
   const code = page.getByRole('link', { name: 'Code', exact: true });
   await expect(code).toHaveAttribute('href', 'https://github.com/LARK-AI-Lab/Mosaic');
   await expect(code).not.toHaveAttribute('aria-disabled', 'true');
